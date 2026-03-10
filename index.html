@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>HSE Smart Study Planner</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Segoe UI;
+background:linear-gradient(135deg,#0f172a,#020617);
+color:white;
+margin:0;
+}
+
+header{
+text-align:center;
+padding:20px;
+font-size:22px;
+font-weight:bold;
+background:#020617;
+border-bottom:1px solid #1e293b;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:15px;
+}
+
+.panel{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+.controls{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+}
+
+select,button{
+flex:1;
+min-width:150px;
+padding:12px;
+border-radius:8px;
+border:none;
+font-size:15px;
+}
+
+select{
+background:#0f172a;
+color:white;
+border:1px solid #334155;
+}
+
+button{
+background:#38bdf8;
+color:#020617;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:disabled{
+background:#475569;
+cursor:not-allowed;
+}
+
+/* NEXT EXAM */
+
+.nextExam{
+background:#1e293b;
+padding:18px;
+border-radius:12px;
+border-left:6px solid #22c55e;
+margin-bottom:20px;
+display:none;
+}
+
+.nextDays{
+font-size:20px;
+font-weight:bold;
+color:#22c55e;
+margin-top:5px;
+}
+
+/* PROGRESS */
+
+.progressBox{
+background:#1e293b;
+padding:18px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+.progressBar{
+width:100%;
+height:10px;
+background:#334155;
+border-radius:10px;
+overflow:hidden;
+}
+
+.progressFill{
+height:100%;
+width:0%;
+background:#22c55e;
+transition:1s;
+}
+
+/* CALENDAR */
+
+.calendarBox{
+background:#1e293b;
+padding:15px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+.calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:6px;
+}
+
+.calDay{
+padding:10px;
+border-radius:6px;
+text-align:center;
+font-size:14px;
+background:#0f172a;
+}
+
+.examUpcoming{ background:#16a34a; }
+.examTomorrow{ background:#dc2626; }
+.examToday{ background:#eab308; color:black; }
+.examFinished{ background:#374151; opacity:0.6; }
+
+
+/* FOOTER */
+
+.footer{
+background:#020617;
+padding:30px 20px 15px;
+margin-top:40px;
+border-top:1px solid #1e293b;
+}
+
+.footerContent{
+max-width:1100px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+flex-wrap:wrap;
+gap:20px;
+}
+
+.footerBrand h3{
+margin:0;
+color:#38bdf8;
+}
+
+.footerBrand p{
+margin:5px 0 0;
+font-size:13px;
+opacity:.7;
+}
+
+.footerLinks{
+display:flex;
+flex-direction:column;
+gap:8px;
+}
+
+.footerLinks a{
+color:#38bdf8;
+text-decoration:none;
+font-size:14px;
+transition:.2s;
+}
+
+.footerLinks a:hover{
+color:white;
+transform:translateX(4px);
+}
+
+.footerBottom{
+text-align:center;
+margin-top:20px;
+font-size:12px;
+opacity:.6;
+}
+
+/* mobile */
+
+@media(max-width:600px){
+
+.footerContent{
+flex-direction:column;
+text-align:center;
+}
+
+.footerLinks{
+align-items:center;
+}
+
+}
+
+/* CARDS */
+
+.dashboard{
+display:grid;
+gap:12px;
+}
+
+.examCard{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+border-left:6px solid #38bdf8;
+}
+
+.finished{
+opacity:.4;
+border-left:6px solid #64748b;
+}
+
+.examTitle{
+font-size:17px;
+font-weight:bold;
+}
+
+.examMeta{
+font-size:14px;
+opacity:.85;
+}
+
+.study{
+margin-top:6px;
+font-weight:bold;
+}
+.examPopup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:1000;
+}
+
+.popupCard{
+background:#1e293b;
+padding:25px;
+border-radius:10px;
+width:85%;
+max-width:350px;
+text-align:center;
+}
+
+.popupCard button{
+margin-top:15px;
+background:#38bdf8;
+padding:10px;
+border:none;
+border-radius:6px;
+font-weight:bold;
+}
+
+#optional option:checked{
+background:#22c55e;
+color:black;
+font-weight:bold;
+}
+
+@media(max-width:600px){
+.calendar{
+grid-template-columns:repeat(4,1fr);
+}
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+📚WISDOM HSE TIME TABLE
+</header>
+
+<div class="container">
+
+<div class="panel">
+
+<div class="controls">
+
+<select id="level">
+<option value="">Select Level</option>
+<option value="plus1">Plus One</option>
+<option value="plus2">Plus Two</option>
+</select>
+
+<select id="stream">
+<option value="">Select Stream</option>
+<option value="science">Science</option>
+<option value="commerce">Commerce</option>
+<option value="humanities">Humanities</option>
+</select>
+
+<div style="display:flex;flex-direction:column">
+
+<label style="font-size:13px;opacity:.8">
+Select Optional Subject
+</label>
+
+<select id="optional" size="4"></select>
+
+<small style="opacity:.6">
+Select one optional subject OR choose "No Optional Subject"
+</small>
+
+</div>
+
+<button id="generateBtn" disabled onclick="generatePlan()">
+Time Table
+</button>
+
+</div>
+
+</div>
+
+
+<div class="nextExam" id="nextExamBox">
+<h3 id="nextExamSubject"></h3>
+<div id="nextExamDate"></div>
+<div id="nextExamTime"></div>
+<div class="nextDays" id="nextExamDays"></div>
+</div>
+
+
+<div class="progressBox">
+
+<div>Exam Progress</div>
+
+<div class="progressBar">
+<div class="progressFill" id="progressFill"></div>
+</div>
+
+<div id="progressText"></div>
+
+</div>
+
+
+<div class="calendarBox">
+
+<div>Exam Calendar</div>
+
+<div class="calendar" id="calendar"></div>
+
+</div>
+
+
+<div class="dashboard" id="result"></div>
+
+</div>
+<div class="examPopup" id="examPopup" style="display:none">
+
+<div class="popupCard">
+
+<h3 id="popupSubject"></h3>
+
+<div id="popupDate"></div>
+<div id="popupSession"></div>
+<div id="popupTime"></div>
+<div id="popupStudy"></div>
+
+<button onclick="closePopup()">Close</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* STREAM STRUCTURE */
+
+const streams={
+
+science:{
+core:["Physics","Chemistry","Mathematics","English","Language"],
+optional:["Biology","ComputerScience","Statistics","Electronics","CSandIT","HomeScience"]
+},
+vhse:{
+core:["Physics","Chemistry","English","Language"],
+optional:["Biology","ComputerScience","Statistics","Electronics","CSandIT","HomeScience"]
+},
+
+commerce:{
+core:["Accountancy","BusinessStudies","Economics","English","Language"],
+optional:["Mathematics","ComputerApplication","Statistics"]
+},
+
+humanities:{
+core:["GandhianStudies","Economics","ComputerApplication","English","Language"],
+// optional:["Sociology","Psychology","Philosophy","Anthropology","Economics"]
+}
+
+};
+
+/* EXAM DATA */
+
+const plusOneExamDates={
+
+English:{date:"2026-03-05",session:"AN",time:"1:30 PM – 4:15 PM"},
+Accountancy:{date:"2026-03-09",session:"AN",time:"1:30 PM – 4:15 PM"},
+Language:{date:"2026-03-11",session:"AN",time:"1:30 PM – 4:15 PM"},
+CSandIT:{date:"2026-03-11",session:"AN",time:"1:30 PM – 4:15 PM"},
+Chemistry:{date:"2026-03-13",session:"AN",time:"1:30 PM – 4:15 PM"},
+BusinessStudies:{date:"2026-03-13",session:"AN",time:"1:30 PM – 4:15 PM"},
+Biology:{date:"2026-03-16",session:"AN",time:"1:30 PM – 4:15 PM"},
+ComputerApplication:{date:"2026-03-16",session:"AN",time:"1:30 PM – 4:15 PM"},
+Statistics:{date:"2026-03-18",session:"AN",time:"1:30 PM – 4:15 PM"},
+HomeScience:{date:"2026-03-18",session:"AN",time:"1:30 PM – 4:15 PM"},
+ComputerScience:{date:"2026-03-18",session:"AN",time:"1:30 PM – 4:15 PM"},
+Physics:{date:"2026-03-23",session:"AN",time:"1:30 PM – 4:15 PM"},
+Economics:{date:"2026-03-25",session:"AN",time:"1:30 PM – 4:15 PM"},
+Mathematics:{date:"2026-03-27",session:"FN",time:"9:30 AM – 12:15 PM"}
+
+};
+
+
+const plusTwoExamDates={
+
+Physics:{date:"2026-03-06",session:"FN",time:"9:30 AM – 12:15 PM"},
+ComputerScience:{date:"2026-03-07",session:"FN",time:"9:30 AM – 12:15 PM"},
+Statistics:{date:"2026-03-07",session:"FN",time:"9:30 AM – 12:15 PM"},
+HomeScience:{date:"2026-03-07",session:"FN",time:"9:30 AM – 12:15 PM"},
+GandhianStudies:{date:"2026-03-07",session:"FN",time:"9:30 AM – 12:15 PM"},
+Chemistry:{date:"2026-03-10",session:"FN",time:"9:30 AM – 12:15 PM"},
+History:{date:"2026-03-10",session:"FN",time:"9:30 AM – 12:15 PM"},
+BusinessStudies:{date:"2026-03-10",session:"FN",time:"9:30 AM – 12:15 PM"},
+Language:{date:"2026-03-12",session:"FN",time:"9:30 AM – 12:15 PM"},
+Mathematics:{date:"2026-03-17",session:"FN",time:"9:30 AM – 12:15 PM"},
+Economics:{date:"2026-03-19",session:"FN",time:"9:30 AM – 12:15 PM"},
+Biology:{date:"2026-03-24",session:"FN",time:"9:30 AM – 12:15 PM"},
+PoliticalScience:{date:"2026-03-24",session:"FN",time:"9:30 AM – 12:15 PM"},
+ComputerApplication:{date:"2026-03-24",session:"FN",time:"9:30 AM – 12:15 PM"},
+Accountancy:{date:"2026-03-26",session:"FN",time:"9:30 AM – 12:15 PM"},
+English:{date:"2026-03-28",session:"FN",time:"9:30 AM – 12:15 PM"}
+
+};
+
+const streamSelect=document.getElementById("stream");
+const optionalSelect=document.getElementById("optional");
+const generateBtn=document.getElementById("generateBtn");
+
+let subjects=[];
+
+/* AUTO LOAD OPTIONALS */
+
+streamSelect.addEventListener("change",()=>{
+
+let stream=streamSelect.value;
+
+optionalSelect.innerHTML="";
+
+subjects=[...streams[stream].core];
+
+let none=document.createElement("option");
+none.value="none";
+none.text="No Optional Subject";
+optionalSelect.appendChild(none);
+
+streams[stream].optional.forEach(s=>{
+let o=document.createElement("option");
+o.value=s;
+o.text=s;
+optionalSelect.appendChild(o);
+});
+
+generateBtn.disabled=true;
+
+});
+
+/* ENABLE BUTTON AFTER OPTIONAL SELECT */
+
+optionalSelect.addEventListener("change",()=>{
+generateBtn.disabled=false;
+});
+
+/* COUNTDOWN */
+
+function startCountdown(date){
+
+function update(){
+
+let diff=date-new Date();
+
+if(diff<=0){
+document.getElementById("nextExamDays").innerText="Exam Started";
+return;
+}
+
+let d=Math.floor(diff/86400000);
+let h=Math.floor((diff%86400000)/3600000);
+let m=Math.floor((diff%3600000)/60000);
+
+document.getElementById("nextExamDays").innerText=
+`${d}d ${h}h ${m}m left`;
+
+}
+
+update();
+setInterval(update,60000);
+
+}
+function closePopup(){
+document.getElementById("examPopup").style.display="none";
+}
+
+/* GENERATE PLAN */
+
+function generatePlan(){
+
+let level=document.getElementById("level").value;
+
+let examDates=level==="plus1"
+? plusOneExamDates
+: plusTwoExamDates;
+
+let optionalSelected=
+Array.from(optionalSelect.selectedOptions)
+.map(o=>o.value)
+.filter(v=>v!=="none");
+
+let all=[...subjects,...optionalSelected];
+
+let exams=[];
+
+all.forEach(s=>{
+
+if(examDates[s]){
+
+let d=new Date(examDates[s].date);
+
+if(examDates[s].session==="AN")
+d.setHours(13,30);
+else
+d.setHours(9,30);
+
+exams.push({
+subject:s,
+date:d,
+session:examDates[s].session,
+time:examDates[s].time
+});
+
+}
+
+});
+
+exams.sort((a,b)=>a.date-b.date);
+
+let now=new Date();
+
+/* NEXT EXAM */
+
+let next=exams.find(e=>e.date>now);
+
+if(next){
+
+document.getElementById("nextExamBox").style.display="block";
+
+document.getElementById("nextExamSubject").innerText="Next Exam: "+next.subject;
+
+document.getElementById("nextExamDate").innerText=next.date.toDateString();
+
+document.getElementById("nextExamTime").innerText=next.time;
+
+startCountdown(next.date);
+
+}
+
+/* PROGRESS */
+
+let completed=exams.filter(e=>e.date<now).length;
+
+let percent=(completed/exams.length)*100;
+
+document.getElementById("progressFill").style.width=percent+"%";
+
+document.getElementById("progressText").innerText=
+completed+" of "+exams.length+" exams completed";
+
+/* CALENDAR */
+
+let cal=document.getElementById("calendar");
+cal.innerHTML="";
+
+for(let d=1;d<=31;d++){
+
+let box=document.createElement("div");
+box.className="calDay";
+box.innerText=d;
+
+let dateStr="2026-03-"+String(d).padStart(2,"0");
+
+let exam=exams.find(e=>e.date.toISOString().startsWith(dateStr));
+
+if(exam){
+
+let today=new Date();
+today.setHours(0,0,0,0);
+
+let examDay=new Date(exam.date);
+examDay.setHours(0,0,0,0);
+
+let diff=Math.floor((examDay-today)/86400000);
+
+if(diff<0) box.classList.add("examFinished");
+else if(diff===0) box.classList.add("examToday");
+else if(diff===1) box.classList.add("examTomorrow");
+else box.classList.add("examUpcoming");
+
+// box.title=`${exam.subject}
+// ${exam.date.toDateString()}
+// ${exam.time}`;
+
+box.onclick=function(){
+
+document.getElementById("examPopup").style.display="flex";
+
+document.getElementById("popupSubject").innerText = exam.subject;
+document.getElementById("popupDate").innerText = "Date: " + exam.date.toDateString();
+document.getElementById("popupSession").innerText = "Session: " + exam.session;
+document.getElementById("popupTime").innerText = "Time: " + exam.time;
+
+};
+
+}
+
+cal.appendChild(box);
+
+}
+
+
+
+/* EXAM CARDS */
+
+let html="";
+
+exams.forEach((e,i)=>{
+
+let study;
+
+if(i===0)
+study=Math.ceil((e.date-now)/86400000);
+else
+study=Math.ceil((e.date-exams[i-1].date)/86400000)-1;
+
+if(study<0) study=0;
+
+html+=`
+
+<div class="examCard ${e.date<now?'finished':''}">
+
+<div class="examTitle">${e.subject}</div>
+
+<div class="examMeta">${e.date.toDateString()}</div>
+
+<div class="examMeta">Session: ${e.session}</div>
+
+<div class="examMeta">Time: ${e.time}</div>
+
+<div class="study">Study Days: ${study}</div>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("result").innerHTML=html;
+
+}
+
+</script>
+
+<footer class="footer">
+
+<div class="footerContent">
+
+<div class="footerBrand">
+
+
+
+
+
+<footer class="footer">
+
+<div class="footerContent">
+
+<div class="footerBrand">
+<h3>CodeLeaf</h3>
+<p>Web Development • Automation • Software Solutions</p>
+</div>
+
+<div class="footerLinks">
+
+<a href="https://www.instagram.com/codeleaf.tech" target="_blank">
+📷 Instagram: @codeleaf.tech
+</a>
+
+<a href="https://www.codeleaf.co.in" target="_blank">
+🌐 www.codeleaf.co.in
+</a>
+
+</div>
+
+</div>
+
+<div class="footerBottom">
+© 2026 CodeLeaf. All rights reserved.
+</div>
+
+</footer>
+
+</body>
+</html>
